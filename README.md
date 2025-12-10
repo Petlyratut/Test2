@@ -1,1 +1,257 @@
-# Test22222
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>📝 Мои заметки</title>
+  <style>
+    :root {
+      --bg: #f9f9fb;
+      --card-bg: #ffffff;
+      --text: #2d2d2d;
+      --text-light: #666;
+      --accent: #4f46e5;
+      --danger: #ef4444;
+      --border: #e5e7eb;
+      --shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      padding: 20px;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    h1 {
+      font-weight: 700;
+      font-size: 2.2rem;
+      margin-bottom: 8px;
+      background: linear-gradient(90deg, var(--accent), #7c3aed);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .subtitle {
+      color: var(--text-light);
+      font-size: 1rem;
+    }
+
+    .warning {
+      background: #fff8e6;
+      color: #856404;
+      padding: 10px 16px;
+      border-radius: 8px;
+      text-align: center;
+      margin-bottom: 20px;
+      font-size: 0.9rem;
+      display: none;
+    }
+
+    .add-btn {
+      display: block;
+      width: 100%;
+      padding: 14px;
+      background-color: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      margin-bottom: 30px;
+      transition: background 0.2s;
+    }
+
+    .add-btn:hover {
+      background-color: #4338ca;
+    }
+
+    .notes-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
+    }
+
+    .note-card {
+      background: var(--card-bg);
+      border-radius: 14px;
+      padding: 20px;
+      box-shadow: var(--shadow);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .note-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+    }
+
+    .note-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin-bottom: 10px;
+      outline: none;
+      width: 100%;
+      border: none;
+      background: transparent;
+      color: var(--text);
+      padding: 2px 0;
+    }
+
+    .note-title:focus {
+      background-color: #f0f0f0;
+      border-radius: 6px;
+      padding: 4px 6px;
+    }
+
+    .note-content {
+      font-size: 1rem;
+      line-height: 1.5;
+      color: var(--text-light);
+      outline: none;
+      width: 100%;
+      border: none;
+      background: transparent;
+      resize: none;
+      min-height: 100px;
+      max-height: 200px;
+      padding: 2px 0;
+    }
+
+    .note-content:focus {
+      background-color: #f0f0f0;
+      border-radius: 6px;
+      padding: 6px;
+    }
+
+    .note-actions {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 12px;
+    }
+
+    .delete-btn {
+      background: none;
+      border: none;
+      color: var(--danger);
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-weight: 600;
+      padding: 4px 8px;
+      border-radius: 6px;
+      transition: background 0.2s;
+    }
+
+    .delete-btn:hover {
+      background: #fee2e2;
+    }
+
+    @media (max-width: 600px) {
+      .notes-container {
+        grid-template-columns: 1fr;
+      }
+      body {
+        padding: 15px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>📝 Мои заметки</h1>
+    <p class="subtitle">Все изменения сохраняются автоматически</p>
+  </header>
+
+  <div id="storage-warning" class="warning">
+    ⚠️ Заметки не сохраняются: localStorage недоступен в этом режиме.
+  </div>
+
+  <button class="add-btn" id="add-note">➕ Новая заметка</button>
+  <div class="notes-container" id="notes-container"></div>
+
+  <script>
+    // Проверка localStorage
+    let useStorage = false;
+    let notes = [];
+
+    try {
+      localStorage.setItem('__test', '1');
+      localStorage.removeItem('__test');
+      useStorage = true;
+      const saved = localStorage.getItem('notes');
+      notes = saved ? JSON.parse(saved) : [];
+    } catch (e) {
+      document.getElementById('storage-warning').style.display = 'block';
+    }
+
+    function saveNotes() {
+      if (useStorage) {
+        localStorage.setItem('notes', JSON.stringify(notes));
+      }
+    }
+
+    function createNoteElement(index) {
+      const note = notes[index];
+      const el = document.createElement('div');
+      el.className = 'note-card';
+      el.innerHTML = `
+        <input class="note-title" value="${(note.title || '').replace(/"/g, '&quot;')}" placeholder="Заголовок" />
+        <textarea class="note-content" placeholder="Напишите что-нибудь...">${(note.content || '').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</textarea>
+        <div class="note-actions">
+          <button class="delete-btn">🗑️ Удалить</button>
+        </div>
+      `;
+
+      const title = el.querySelector('.note-title');
+      const content = el.querySelector('.note-content');
+      const delBtn = el.querySelector('.delete-btn');
+
+      title.addEventListener('input', () => {
+        notes[index].title = title.value;
+        saveNotes();
+      });
+
+      content.addEventListener('input', () => {
+        notes[index].content = content.value;
+        saveNotes();
+      });
+
+      delBtn.addEventListener('click', () => {
+        notes.splice(index, 1);
+        saveNotes();
+        render();
+      });
+
+      return el;
+    }
+
+    function render() {
+      const container = document.getElementById('notes-container');
+      container.innerHTML = '';
+      notes.forEach((_, i) => container.appendChild(createNoteElement(i)));
+    }
+
+    document.getElementById('add-note').addEventListener('click', () => {
+      notes.push({ title: '', content: '' });
+      saveNotes();
+      render();
+    });
+
+    render();
+  </script>
+</body>
+</html>
